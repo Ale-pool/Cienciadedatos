@@ -1,0 +1,20 @@
+import pandas as pd
+import numpy as np
+#En uno de los dataset el departamento quedó solo con los códigos DIVIPOLA (Códigos DIVIPOLA DPTOS: https://www.datos.gov.co/api/views/gdxc-w37w/rows.csv?accessType=DOWNLOAD). Cambiar esto por el nombre siguiendo la codificación3
+
+#leer los diferentes  database
+file_CD='https://www.datos.gov.co/api/views/gdxc-w37w/rows.csv?accessType=DOWNLOAD'
+C_D=pd.read_csv(file_CD, encoding='UTF-8')
+C_D.head(10)
+
+file_IGD='https://drive.google.com/u/0/uc?id=1sAPSFtu67H0Dv3FRzkViuFVVNMoxo05e&export=download'
+
+IGD=pd.read_csv(file_IGD,
+                encoding = 'UTF-8')
+              
+              file_CD='https://drive.google.com/u/0/uc?id=1Hw_3wMC11Pr8hfi-cyLw8DeBaLRWWk9D&export=download&confirm=f'
+C_D=pd.read_csv(file_CD, encoding='UTF-8')
+C_D.head()
+
+# para un mejor entendimiento y procesos de los codigos visualizar el siguiente colab :
+https://colab.research.google.com/drive/1zKjMMjSRaghHqYpsU27I0IV6iTADCvJ9?usp=sharing
