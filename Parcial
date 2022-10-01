@@ -1,0 +1,121 @@
+from cProfile import label
+from turtle import title
+from plotly.subplots import make_subplots
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+from scipy import stats
+linkDB ='https://drive.google.com/u/0/uc?id=1aAHMINSn4dnU7_Cp5yPBPCFUlnLxFZC9&export=download' #r'C:\Users\Juan\OneDrive\SEMESTRE 6\Ciencia de datos\Semana 8 y 9\datasets_challenge\Best_sellers_Amazon\bestsellers with categories.csv' 
+ #
+DB= pd.read_csv(linkDB, encoding='UTF-8')
+
+print(DB.head())
+print(DB.shape)
+def format_float(num): 
+    return np.format_float_positional(num, trim='-')
+
+
+def calculate_pvalues(df):
+    df =df.dropna()._get_numeric_data()
+    dfcols = pd.DataFrame(columns=df.columns)
+    pvalues = dfcols.transpose().join(dfcols, how='outer')
+    for r in df.columns:
+        for c in df.columns:
+            pvalues[r][c] = (stats.pearsonr(df[r], df[c])[1])
+    return pvalues
+print(calculate_pvalues(DB))
+r, p=stats.pearsonr(DB.Reviews, DB.Year)
+print(round(r,2)*100,"%", sep="")
+print("\nPValue de forma manual de weight:",format_float(p))
+
+double_plot = make_subplots(rows=2, cols=4, shared_xaxes=False ,subplot_titles=('UserRatingVsPrices','UserRatingVsYear','ReviewsVsPrices','ReviewsVsYear','PricesVsYear'))
+fig1 = px.scatter(DB, x="User Rating", y="Price", trendline="ols", color="Price")
+fig2 = px.scatter(DB, x="Year", y="User Rating", trendline="ols", color="User Rating")
+fig3= px.scatter(DB, x="Reviews", y="Price", trendline="ols", color="Reviews")
+fig4= px.scatter(DB, x="Year", y="Reviews", trendline="ols", color="Reviews")
+fig5= px.scatter(DB, x="Year", y="Price", trendline="ols", color="Price")
+print(DB.head())
+
+for t in fig1.data:
+    double_plot.append_trace(t, row=1, col=1)
+for t in fig2.data:
+    double_plot.append_trace(t, row=1, col=2)
+for t in fig3.data:
+    double_plot.append_trace(t, row=1, col=3)
+for t in fig4.data:
+    double_plot.append_trace(t, row=1, col=4)
+for t in fig5.data:
+    double_plot.append_trace(t, row=2, col=1)
+
+#Subplot1 axes titles
+double_plot['layout']['xaxis']['title']='User Rating'
+double_plot['layout']['yaxis']['title']='Prices'
+#Subplot2 axes titles
+double_plot['layout']['xaxis2']['title']='Year'
+double_plot['layout']['yaxis2']['title']='User Rating'
+#Subplot3 axes titles
+double_plot['layout']['xaxis3']['title']='Reviews'
+double_plot['layout']['yaxis3']['title']='Prices'
+#Subplot4 axes titles
+double_plot['layout']['xaxis4']['title']='Year'
+double_plot['layout']['yaxis4']['title']='Reviews'
+#Subplot5 axes titles
+double_plot['layout']['xaxis5']['title']='Year'
+double_plot['layout']['yaxis5']['title']='Prices'
+double_plot.update_layout(showlegend=False, title_text="Comparison between different variables",title_x=0.5)
+
+double_plot.show()
+DB2=DB.drop(columns=['Author','User Rating','Reviews','Year','Genre'])
+DB2=(DB2.sort_values(by=['Price'], ascending=False)).value_counts().reset_index()
+
+C_D1=(DB.groupby(["Genre"]).agg(Cantidad_Libros=("Genre","count"))).reset_index()
+#print(C_D1.Cantidad_Libros)
+C_D2=(DB.groupby(["Year"]).agg(Cantidad_Libros=("Genre","count"))).reset_index()
+C_D3=(DB.groupby(['Name',"Reviews"]).agg(CantidadLbrosGénero=("Reviews","count"))).reset_index()
+C_D4=(DB.groupby(['Name',"User Rating"]).agg(PromedioRating=("User Rating","mean")).sort_values(by=['User Rating'],ascending=False)).reset_index()
+print(C_D4.head())
+#C_D4=C_D4.sort_values(by='User Rating')
+#print(C_D2)
+#SECCIÓN DIAGRAMA DE BARRAS
+figbar1=go.Figure(data=[go.Bar(name='Number of fiction books',x=C_D1.loc[0:0,'Genre'],y=C_D1.Cantidad_Libros),
+go.Bar(name='Number of non-fiction books',x=C_D1.loc[1:1,'Genre'],y=C_D1.loc[1:1,'Cantidad_Libros'])])
+figbar1.update_layout()
+figbar1.update_xaxes(title='Genre')
+figbar1.update_yaxes(title='Number of books sold by genre')
+figbar1.show()
+
+figbar2=go.Figure(data=[go.Bar(name='Number of fiction books sold',x=C_D2['Year'],y=C_D2.Cantidad_Libros),
+go.Bar(name='Number of non-fiction books sold',x=C_D2['Year'],y=C_D2['Cantidad_Libros'])])
+figbar2.update_layout()
+figbar2.update_xaxes(title='Year')
+figbar2.update_yaxes(title='Number of books')
+figbar2.show()
+
+#print(C_D3.head())
+figbar3=go.Figure(data=[go.Bar(x=C_D3.loc[0:5,'Name'],y=C_D3.Reviews)])
+figbar3.update_layout(title='Total number of reviews made to the different books')
+figbar3.update_xaxes(title='Name of books')
+figbar3.update_yaxes(title='Number of reviews')
+figbar3.show()
+
+figbar4=go.Figure(data=[go.Bar(x=C_D4.loc[:5,'Name'] ,y=C_D4['PromedioRating'])])
+figbar4.update_layout(title="Falling average of user ratings for books")
+figbar4.update_xaxes(title='Name of books (top 5)')
+figbar4.update_yaxes(title='Average user ratings')
+figbar4.show()
+
+figbar5=go.Figure(data=[go.Bar(x=DB2.loc[0:5,'Name'],y=DB2['Price'])])
+figbar5.update_layout(title='Top 5 most expensive books')
+figbar5.update_xaxes(title='Name of books')
+figbar5.update_yaxes(title='Price of books')
+figbar5.show()
+
+figDonut1 = go.Figure(data=[go.Pie(labels=DB.loc[0:5,"Genre"], values=DB['Price'])])
+figDonut1.update_layout(title="Comparison between genres")
+figDonut1.show()
+
+figBox1= go.Figure()
+figBox1.add_trace(go.Box(y=DB['Reviews'], name='Reviews'))
+figBox1.update_layout(title="Box of Reviews")
+figBox1.show()
