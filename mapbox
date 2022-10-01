@@ -1,0 +1,52 @@
+import pandas as pd
+url="/content/Robos-2020-Colombia (1).csv"
+df = pd.read_csv(url)
+print(df.head(5))
+print(df.shape)
+
+import pandas as pd
+import numpy as np
+import plotly.graph_objs as go
+import json
+from urllib.request import urlopen
+with urlopen('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json') as response:
+    counties = json.load(response)
+        
+df=pd.read_csv('/content/Robos-2020-Colombia (1).csv')
+df['Robos']=df['Robos'].astype('float64')
+locs = df['Departamento']
+
+for loc in counties['features']:
+    loc['id'] = loc['properties']['NOMBRE_DPT']
+
+fig = go.Figure(go.Choroplethmapbox(
+                    geojson=counties,
+                    locations=locs,
+                    z=df['Robos'],
+                    colorscale='OrRd',
+                    colorbar_title="Robos"))
+fig.update_layout(mapbox_style="carto-positron",
+                        mapbox_zoom=3.4,
+                        mapbox_center = {"lat": 4.570868, "lon": -74.2973328})
+
+fig.update_geos(showcountries=False, showcoastlines=False, showland=False, fitbounds="locations")
+
+fig.update_layout(
+    title_text = 'Robos por mes en colombia',
+    font=dict(
+        family="ubuntu",
+        size=18,
+        color="#7f7f7f",
+        
+    ),
+    annotations = [dict(
+        x=0.55,
+        y=0.1,
+        xref='paper',
+        yref='paper',
+        text= 'Fuente: <a href="https://plotly.com/python/builtin-colorscales/#using-builtin-continuous-color-scales"></a>',
+        showarrow = False
+    )]
+)
+
+fig.show()
